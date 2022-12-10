@@ -48,34 +48,33 @@ namespace adwent2022
         public static void Part2()
         {
             using var input = File.OpenText("inputs/10.txt");
-            var spritePos = 0;
+            var spritePos = 1;
             var xPos = 0;
             var screen = new List<string>();
-            var bufor = new StringBuilder();
+            var buffer = new StringBuilder();
             while (input.Peek() != -1)
             {
                 var line = input.ReadLine()!.Split(' ');
                 if (xPos == 40)
                 {
-                    screen.Add(bufor.ToString());
-                    bufor = new StringBuilder();
+                    screen.Add(buffer.ToString());
+                    buffer = new StringBuilder();
                     xPos = 0;
                 }
-                bufor.Append(spritePos - 1 <= xPos && xPos <= spritePos + 1 ? "█" : ".");
-                if (line[0] == "addx")
+                buffer.Append(Math.Abs(spritePos - xPos) <= 1 ? "█" : "·");
+                ++xPos;
+                if (line[0] != "addx") continue;
+                if (xPos == 40)
                 {
-                    if (++xPos == 40)
-                    {
-                        screen.Add(bufor.ToString());
-                        bufor = new StringBuilder();
-                        xPos = 0;
-                    }
-                    spritePos += int.Parse(line[1]);
-                    bufor.Append(spritePos - 1 <= xPos && xPos <= spritePos + 1 ? "█" : ".");
+                    screen.Add(buffer.ToString());
+                    buffer = new StringBuilder();
+                    xPos = 0;
                 }
+                buffer.Append(Math.Abs(spritePos - xPos) <= 1 ? "█" : "·");
+                spritePos += int.Parse(line[1]);
                 ++xPos;
             }
-            screen.Add(bufor.ToString());
+            screen.Add(buffer.ToString());
             foreach (var line in screen)
             {
                 Console.WriteLine(line);
