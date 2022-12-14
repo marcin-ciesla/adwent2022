@@ -102,11 +102,12 @@ namespace adwent2022
 
         public static void Part2()
         {
-            using var input = File.OpenText("inputs/14.txt");
+            var start = DateTime.Now;
+            var input = File.OpenText("inputs/14.txt").ReadToEnd().Split('\n').Distinct();
             var rocks = new List<int[]>();
-            while (input.Peek() != -1)
+            foreach (var line in input)
             {
-                var coordinates = input.ReadLine()
+                var coordinates = line
                     .Split(" -> ")
                     .Select(e => e.Split(','))
                     .Select(e => new int[] {int.Parse(e[0]), int.Parse(e[1])})
@@ -141,72 +142,77 @@ namespace adwent2022
             }
 
             var grain = new int[] {500, 0};
-            var sand = new List<int[]>();
+            var sand = new List<int[]> {new[] {grain[0], grain[1]}};
+            var stream = new List<int[]> {new[] {grain[0], grain[1]}};
+            var obstacles = rocks.Concat(sand).ToList();
             var leftBound = rocks.Min(e => e[0]);
             var rightBound = rocks.Max(e => e[0]);
             var floor = rocks.Select(e => e[1]).Max() + 1;
-            var overflow = false;
-            while (!overflow)
+            // grain = new int[] {500, 0};
+            do
             {
-                grain = new int[] {500, 0};
-                var obstacles = rocks.Concat(sand);
-                while (true)
+                if (!obstacles.Any(e => e[0] == grain[0] && e[1] == grain[1] + 1) && grain[1] < floor)
                 {
-                    if (!obstacles.Any(e => e[0] == grain[0] && e[1] == grain[1] + 1) && grain[1] < floor)
+                    ++grain[1];
+                }
+                else if (
+                    !obstacles.Any(e => e[0] == grain[0] - 1 && e[1] == grain[1] + 1)
+                    && grain[1] < floor
+                    && grain[0] >= leftBound)
+                {
+                    --grain[0];
+                    ++grain[1];
+                }
+                else if (
+                    !obstacles.Any(e => e[0] == grain[0] + 1 && e[1] == grain[1] + 1)
+                    && grain[1] < floor
+                    && grain[0] <= rightBound)
+                {
+                    ++grain[0];
+                    ++grain[1];
+                }
+                else
+                {
+                    stream = stream.SkipLast(1).ToList();
+                    if (!stream.Any())
                     {
-                        var obs = obstacles.Where(e => e[0] == grain[0] && e[1] > grain[1]);
-                        grain[1] = obs.Any() ? obs.Min(e => e[1]) - 1 : floor;
-                    }
-                    else if (
-                        // !obstacles.Any(e => e[0] == grain[0] - 1 && e[1] == grain[1]) && 
-                        !obstacles.Any(e => e[0] == grain[0] - 1 && e[1] == grain[1] + 1)
-                        && grain[1] < floor
-                        && grain[0] >= leftBound)
-                    {
-                        --grain[0];
-                        ++grain[1];
-                    }
-                    else if (
-                        // !obstacles.Any(e => e[0] == grain[0] + 1 && e[1] == grain[1]) && 
-                        !obstacles.Any(e => e[0] == grain[0] + 1 && e[1] == grain[1] + 1)
-                        && grain[1] < floor
-                        && grain[0] <= rightBound)
-                    {
-                        ++grain[0];
-                        ++grain[1];
-                    }
-                    else
-                    {
-                        sand.Add(grain);
-                        if (grain[0] == 500 && grain[1] == 0)
-                            overflow = true;
                         break;
                     }
+
+                    grain = new[] {stream.Last()[0], stream.Last()[1]};
+                    continue;
                 }
-            }
+
+                var drop = new[] {grain[0], grain[1]};
+                sand.Add(drop);
+                stream.Add(drop);
+                obstacles.Add(drop);
+            } while (true);
+
 
             var leftHeight = floor - rocks.Concat(sand).Where(e => e[0] == leftBound - 1).Min(e => e[1]);
             var rightHeight = floor - rocks.Concat(sand).Where(e => e[0] == rightBound + 1).Min(e => e[1]);
-            for (var i = 0; i <= leftHeight; i++)
-            {
-                for (var j = leftHeight - i; j > 0; j--)
-                {
-                    sand.Add(new int[] {leftBound - j, floor - i});
-                }
-            }
-
-            for (var i = 0; i <= rightHeight; i++)
-            {
-                for (var j = rightHeight - i; j > 0; j--)
-                {
-                    sand.Add(new int[] {rightBound + j, floor - i});
-                }
-            }
+            // for (var i = 0; i <= leftHeight; i++)
+            // {
+            //     for (var j = leftHeight - i; j > 0; j--)
+            //     {
+            //         sand.Add(new int[] {leftBound - j, floor - i});
+            //     }
+            // }
+            //
+            // for (var i = 0; i <= rightHeight; i++)
+            // {
+            //     for (var j = rightHeight - i; j > 0; j--)
+            //     {
+            //         sand.Add(new int[] {rightBound + j, floor - i});
+            //     }
+            // }
 
             var leftSide = leftHeight * (leftHeight + 1) / 2;
             var rightSide = rightHeight * (rightHeight + 1) / 2;
-            DrawMap(rocks, sand, grain);
-            Console.WriteLine(sand.Count);
+            // DrawMap(rocks, sand, grain);
+            Console.WriteLine(sand.Count + leftSide + rightSide);
+            Console.WriteLine(DateTime.Now - start);
             // Console.WriteLine(sand.LongCount() + leftSide + rightSide);
         }
 
