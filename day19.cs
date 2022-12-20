@@ -29,20 +29,18 @@ namespace adwent2022
                     int.Parse(bp[5].Value),
                     int.Parse(bp[6].Value)));
             }
-
+            
             var qualitySum = 0;
             foreach (var blueprint in blueprints)
             {
                 var robots = new Resources(1, 0, 0, 0);
                 var resources = new Resources(0, 0, 0, 0);
-                var timeLeft = 19;
-                var maxGeodeYeld = Simulate(blueprint, robots, resources, timeLeft, null);
-                Console.WriteLine($"blueprint: {blueprint.BlueprintId}; max geode yeld {maxGeodeYeld.Result}");
-                qualitySum += (maxGeodeYeld.Result * blueprint.BlueprintId);
+                var timeLeft = 24;
+                var maxGeodeYield = Simulate(blueprint, robots, resources, timeLeft, null);
+                Console.WriteLine($"blueprint: {blueprint.BlueprintId}; max geode yeld {maxGeodeYield}");
+                qualitySum += (maxGeodeYield * blueprint.BlueprintId);
             }
-
-
-
+            
             Console.WriteLine($"got {qualitySum} quality total");
         }
 
@@ -52,10 +50,10 @@ namespace adwent2022
 
         }
 
-        static Task<int> Simulate(Blueprint blueprint, Resources robots, Resources resources, int timeLeft, Type? robotToBuild)
+        static int Simulate(Blueprint blueprint, Resources robots, Resources resources, int timeLeft, Type? robotToBuild)
         {
             if (timeLeft == 0)
-                return Task.FromResult(resources.Geode);
+                return resources.Geode;
 
             //copy objects
             var localRobots = (Resources)robots.Clone();
@@ -72,13 +70,9 @@ namespace adwent2022
 
             var availableRobots = blueprint.RobotsBuildable(localResources);
             var ifWait = Simulate(blueprint, localRobots, localResources, timeLeft - 1, null);
-            if (availableRobots.Any())
-            {
-                var nodes = availableRobots.Select(e => Simulate(blueprint, localRobots, localResources, timeLeft - 1, e));
-                nodes = nodes.Append(ifWait);
-                return Task.FromResult(nodes.Max(e => e.Result));
-            }
-            return ifWait;
+            if (!availableRobots.Any()) return ifWait;
+            var maxSimulated = availableRobots.Select(e =>Simulate(blueprint, localRobots, localResources, timeLeft - 1, e)).Max();
+            return Math.Max(ifWait, maxSimulated);
         }
     }
 
