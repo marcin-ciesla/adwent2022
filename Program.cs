@@ -3,7 +3,7 @@ using adwent2022;
 
 var start = DateTime.Now;
 
-Day20.Part1();
-Day20.Part2();
+Day21.Part1();
+Day21.Part2();
 
 Console.WriteLine(DateTime.Now - start);
